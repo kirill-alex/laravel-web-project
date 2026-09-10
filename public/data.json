@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "title": "Кот Невдуплёныш",
+        "description": "Краткое описание первого кота.",
+        "preview_image": "images/cat1.jpg",
+        "full_image": "images/full1.jpg"
+    },
+    {
+        "id": 2,
+        "title": "Кот Важный",
+        "description": "Краткое описание второго кота.",
+        "preview_image": "images/cat2.jpg",
+        "full_image": "images/full2.jpg"
+    },
+    {
+        "id": 3,
+        "title": "Кот Непонимающий",
+        "description": "Краткое описание третьего кота.",
+        "preview_image": "images/cat3.jpg",
+        "full_image": "images/full3.jpg"
+    }
+]
