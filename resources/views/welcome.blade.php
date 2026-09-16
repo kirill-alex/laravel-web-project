@@ -3,7 +3,7 @@
 @section('title', 'Главная')
 
 @section('content')
-    <h1>Новости</h1>
+    <h1>Welcome Page</h1>
     <table border="1" cellpadding="8">
         <tr>
             <th>Превью</th>
