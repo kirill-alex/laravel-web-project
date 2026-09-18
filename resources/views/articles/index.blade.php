@@ -23,3 +23,20 @@
         @endforeach
     </table>
 @endsection
+
+
+
+{{-- ni database\database.sqlite
+
+php artisan make:model Article -m
+
+php artisan migrate
+
+php artisan make:controller ArticleController
+
+php artisan make:factory ArticleFactory --model=Article
+
+php artisan db:seed - запуск сидера
+
+php artisan migrate:fresh --seed - миграция + сидер
+ --}}
