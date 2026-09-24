@@ -4,6 +4,7 @@
 
 @section('content')
     <h1>Новости</h1>
+    <a href="{{ url('/articles/create') }}">+ Добавить статью</a>
     <table border="1" cellpadding="8">
         <tr>
             <th>Превью</th>
@@ -11,32 +12,15 @@
             <th>Описание</th>
         </tr>
         @foreach($articles as $article)
-            <tr>
-                <td>
-                    @if($article->preview_image)
-                        <img src="{{ $article->preview_image }}" width="100">
-                    @endif
-                </td>
-                <td>{{ $article->title }}</td>
-                <td>{{ $article->description }}</td>
-            </tr>
-        @endforeach
+        <tr>
+            <td><a href="{{ url('/articles/' . $article->id) }}"><img src="{{ $article->preview_image }}" width="100"></a></td>
+            <td><a href="{{ url('/articles/' . $article->id) }}">{{ $article->title }}</a></td>
+            <td>{{ $article->description }}</td>
+        </tr>
+    @endforeach
     </table>
+
+{{ $articles->links() }}
 @endsection
 
 
-
-{{-- ni database\database.sqlite
-
-php artisan make:model Article -m
-
-php artisan migrate
-
-php artisan make:controller ArticleController
-
-php artisan make:factory ArticleFactory --model=Article
-
-php artisan db:seed - запуск сидера
-
-php artisan migrate:fresh --seed - миграция + сидер
- --}}

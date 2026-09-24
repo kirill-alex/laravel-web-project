@@ -24,4 +24,20 @@ Route::get('/contacts', function () {
 
 Route::get('/signin', [AuthController::class, 'create']);
 Route::post('/signin', [AuthController::class, 'registration']);
-Route::get('/articles', [ArticleController::class, 'index']);
+Route::resource('articles', ArticleController::class);
+
+Route::get('/register', [AuthController::class, 'showRegister']);
+Route::post('/register', [AuthController::class, 'register']);
+
+Route::get('/login', [AuthController::class, 'showLogin']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::post('/logout', [AuthController::class, 'logout']);
+
+// Защищённые маршруты — пример на статьях
+Route::middleware('auth:sanctum')->group(function () {
+    Route::resource('articles', ArticleController::class)->except(['index', 'show']);
+});
+
+// Открытые для всех
+Route::resource('articles', ArticleController::class)->only(['index', 'show']);

@@ -3,14 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Мой сайт')</title>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
     <header>
         <nav>
-            <a href="{{ url('/') }}">Главная</a>
-            <a href="{{ url('/about') }}">О нас</a>
-            <a href="{{ url('/contacts') }}">Контакты</a>
-        </nav>
+    <div class="nav-left">
+        <a href="{{ url('/') }}">Главная</a>
+        <a href="{{ url('/about') }}">О нас</a>
+        <a href="{{ url('/contacts') }}">Контакты</a>
+    </div>
+
+    <div class="nav-right">
+        @auth
+            <span class="nav-username">{{ Auth::user()->name }}</span>
+            <form action="{{ url('/logout') }}" method="POST" style="display:inline">
+                @csrf
+                <button type="submit">Выйти</button>
+            </form>
+        @else
+            <a href="{{ url('/login') }}">Войти</a>
+            <a href="{{ url('/register') }}">Регистрация</a>
+        @endauth
+    </div>
+</nav>
     </header>
 
     <main>
