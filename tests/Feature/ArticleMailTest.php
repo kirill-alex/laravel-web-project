@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\VeryLongJob;
 use App\Mail\ArticleCreatedMail;
 use App\Models\Article;
 use App\Models\User;
@@ -98,24 +99,22 @@ class ArticleMailTest extends TestCase
         $this->assertStringContainsString(route('articles.show', $article), $html);
     }
 
-    public function test_smtp_failure_keeps_the_article_and_shows_a_warning(): void
+    public function test_smtp_failure_is_propagated_to_the_queue_for_retry(): void
     {
         $moderator = User::factory()->moderator()->create();
-        $this->actingAs($moderator);
+        $article = Article::factory()->create();
         $pendingMail = Mockery::mock(PendingMail::class);
         Mail::shouldReceive('to')->once()->with($moderator->email)->andReturn($pendingMail);
         $pendingMail->shouldReceive('send')->once()->with(Mockery::type(ArticleCreatedMail::class))
             ->andThrow(new TransportException('SMTP connection failed'));
 
-        $this->post('/articles', ['title' => 'Saved despite SMTP error', 'description' => 'Text'])
-            ->assertRedirect('/articles')->assertSessionHas('warning');
-
-        $this->assertDatabaseHas('articles', ['title' => 'Saved despite SMTP error']);
-        $this->get('/articles')->assertOk()->assertSee('Статья сохранена, но не все уведомления отправлены.');
+        $this->expectException(TransportException::class);
+        (new VeryLongJob($article, $moderator->email))->handle();
     }
 
     public function test_failure_for_one_recipient_does_not_skip_the_other_moderators(): void
     {
+        config(['queue.default' => 'database']);
         $moderators = User::factory()->moderator()->count(2)->create();
         $this->actingAs($moderators->first());
         $failedMail = Mockery::mock(PendingMail::class);
@@ -126,7 +125,11 @@ class ArticleMailTest extends TestCase
         $successfulMail->shouldReceive('send')->once();
 
         $this->post('/articles', ['title' => 'New', 'description' => 'Text'])
-            ->assertRedirect('/articles')->assertSessionHas('warning');
+            ->assertRedirect('/articles')->assertSessionHas('status');
+        $this->assertDatabaseCount('jobs', 2);
+        $this->artisan('queue:work', ['connection' => 'database', '--once' => true])->assertSuccessful();
+        $this->artisan('queue:work', ['connection' => 'database', '--once' => true])->assertSuccessful();
+        $this->assertDatabaseCount('jobs', 1);
         $this->assertDatabaseCount('articles', 1);
     }
 }

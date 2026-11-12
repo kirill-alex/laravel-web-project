@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\ArticleCreatedMail;
+use App\Jobs\VeryLongJob;
 use App\Models\Article;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Mail;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ArticleController extends Controller
 {
@@ -55,27 +54,23 @@ class ArticleController extends Controller
             'full_image' => 'nullable|string',
         ]);
 
-        $article = Article::create($validated);
-
         $moderatorAddress = config('mail.moderator_address');
         $recipients = filled($moderatorAddress)
             ? collect([$moderatorAddress])
             : User::whereHas('role', fn (Builder $query) => $query->where('name', Role::MODERATOR))
                 ->pluck('email')->unique();
 
-        $notificationFailed = $recipients->isEmpty();
-        foreach ($recipients as $recipient) {
-            try {
-                Mail::to($recipient)->send(new ArticleCreatedMail($article));
-            } catch (TransportExceptionInterface $exception) {
-                report($exception);
-                $notificationFailed = true;
-            }
-        }
+        DB::transaction(function () use ($validated, $recipients): void {
+            $article = Article::create($validated);
 
-        if ($notificationFailed) {
+            foreach ($recipients as $recipient) {
+                VeryLongJob::dispatch($article, $recipient);
+            }
+        });
+
+        if ($recipients->isEmpty()) {
             return redirect('/articles')->with('warning',
-                'Статья сохранена, но не все уведомления отправлены. Проверьте настройки почты и адрес модератора.'
+                'Статья сохранена, но получатель уведомления не настроен.'
             );
         }
 
