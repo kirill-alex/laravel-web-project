@@ -9,6 +9,7 @@
     @endif
     <p>{{ $article->description }}</p>
 
+    @auth
     <a href="{{ url('/articles/' . $article->id . '/edit') }}">Редактировать</a>
 
     <form action="{{ url('/articles/' . $article->id) }}" method="POST" style="display:inline">
@@ -16,6 +17,7 @@
         @method('DELETE')
         <button type="submit" onclick="return confirm('Удалить статью?')">Удалить</button>
     </form>
+    @endauth
 
     <a href="{{ url('/articles') }}">← Назад к списку</a>
 @endsection

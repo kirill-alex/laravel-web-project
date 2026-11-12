@@ -3,20 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
     // Форма регистрации
-    public function showRegister()
+    public function showRegister(): View
     {
         return view('auth.register');
     }
 
     // Сохранение нового пользователя
-    public function register(Request $request)
+    public function register(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -34,20 +36,20 @@ class AuthController extends Controller
     }
 
     // Форма входа
-    public function showLogin()
+    public function showLogin(): View
     {
         return view('auth.login');
     }
 
     // Обработка входа
-    public function login(Request $request)
+    public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             return back()->withErrors(['email' => 'Неверный email или пароль']);
         }
 
@@ -57,11 +59,11 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
         $request->session()->put('auth_token', $token);
 
-        return redirect('/')->withoutMiddleware('auth');
+        return redirect()->intended('/');
     }
 
     // Выход
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         $user = Auth::user();
         if ($user) {

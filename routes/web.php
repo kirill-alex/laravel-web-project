@@ -1,12 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MainController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MainController;
+use Illuminate\Support\Facades\Route;
 
-
-Route::get('/', [MainController::class, 'index']);
+Route::get('/', [MainController::class, 'index'])->name('home');
 Route::get('/gallery/{id}', [MainController::class, 'gallery']);
 
 Route::get('/about', function () {
@@ -19,22 +18,24 @@ Route::get('/contacts', function () {
         ['name' => 'Email', 'value' => 'example@mail.ru'],
         ['name' => 'Адрес', 'value' => 'г. Москва, ул. Примерная, 1'],
     ];
+
     return view('contacts', ['contacts' => $contacts]);
 });
 
-Route::get('/signin', [AuthController::class, 'create']);
-Route::post('/signin', [AuthController::class, 'registration']);
-Route::resource('articles', ArticleController::class);
+Route::middleware('guest')->group(function () {
+    Route::redirect('/signin', '/register');
+    Route::post('/signin', [AuthController::class, 'register']);
 
-Route::get('/register', [AuthController::class, 'showRegister']);
-Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 
-Route::get('/login', [AuthController::class, 'showLogin']);
-Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
-Route::post('/logout', [AuthController::class, 'logout']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-// Защищённые маршруты — пример на статьях
+// Защищённые маршруты
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('articles', ArticleController::class)->except(['index', 'show']);
 });

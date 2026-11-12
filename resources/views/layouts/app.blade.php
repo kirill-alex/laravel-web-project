@@ -10,6 +10,7 @@
         <nav>
     <div class="nav-left">
         <a href="{{ url('/') }}">Главная</a>
+        <a href="{{ route('articles.index') }}">Статьи</a>
         <a href="{{ url('/about') }}">О нас</a>
         <a href="{{ url('/contacts') }}">Контакты</a>
     </div>

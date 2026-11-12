@@ -4,7 +4,9 @@
 
 @section('content')
     <h1>Новости</h1>
-    <a href="{{ url('/articles/create') }}">+ Добавить статью</a>
+    @auth
+        <a href="{{ url('/articles/create') }}">+ Добавить статью</a>
+    @endauth
     <table border="1" cellpadding="8">
         <tr>
             <th>Превью</th>
