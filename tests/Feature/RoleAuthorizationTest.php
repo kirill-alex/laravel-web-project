@@ -61,20 +61,21 @@ class RoleAuthorizationTest extends TestCase
         $this->assertDatabaseCount('articles', 1);
     }
 
-    public function test_readers_cannot_edit_or_delete_even_their_own_comments(): void
+    public function test_readers_can_edit_and_delete_their_own_comments(): void
     {
         $comment = Comment::factory()->create();
         $this->actingAs($comment->user);
         $parameters = [$comment->article, $comment];
 
         $this->get(route('articles.show', $comment->article))->assertOk()
-            ->assertDontSee('Редактировать комментарий')->assertDontSee('Удалить комментарий');
-        $this->get(route('articles.comments.edit', $parameters))->assertForbidden()
-            ->assertSee('Редактировать комментарии может только модератор.');
-        $this->put(route('articles.comments.update', $parameters), ['body' => 'Changed'])->assertForbidden();
-        $this->delete(route('articles.comments.destroy', $parameters))->assertForbidden()
-            ->assertSee('Удалять комментарии может только модератор.');
-        $this->assertSame($comment->body, $comment->fresh()->body);
+            ->assertSee('Редактировать комментарий')->assertSee('Удалить комментарий');
+        $this->get(route('articles.comments.edit', $parameters))->assertOk();
+        $this->put(route('articles.comments.update', $parameters), ['body' => 'Changed'])
+            ->assertRedirect(route('articles.show', $comment->article));
+        $this->assertSame('Changed', $comment->fresh()->body);
+        $this->delete(route('articles.comments.destroy', $parameters))
+            ->assertRedirect(route('articles.show', $comment->article));
+        $this->assertDatabaseMissing('comments', ['id' => $comment->id]);
     }
 
     public function test_moderators_can_manage_someone_elses_comment(): void

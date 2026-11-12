@@ -22,6 +22,12 @@ class AuthServiceProvider extends ServiceProvider
             return $user->isModerator() ? true : null;
         });
 
+        Gate::define('manage-comment', function (User $user, Comment $comment): Response {
+            return $comment->user_id === $user->id
+                ? Response::allow()
+                : Response::deny('Изменять и удалять комментарий могут только его автор и модератор.');
+        });
+
         Gate::define('moderate-content', fn (User $user): Response => Response::deny('Управление статьями и комментариями доступно только модератору.')
         );
     }

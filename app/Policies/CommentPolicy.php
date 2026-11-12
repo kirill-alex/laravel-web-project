@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Gate;
 
 class CommentPolicy
 {
@@ -18,11 +19,11 @@ class CommentPolicy
 
     public function update(User $user, Comment $comment): Response
     {
-        return Response::deny('Редактировать комментарии может только модератор.');
+        return Gate::forUser($user)->inspect('manage-comment', $comment);
     }
 
     public function delete(User $user, Comment $comment): Response
     {
-        return Response::deny('Удалять комментарии может только модератор.');
+        return Gate::forUser($user)->inspect('manage-comment', $comment);
     }
 }
