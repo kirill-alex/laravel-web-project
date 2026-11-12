@@ -11,6 +11,7 @@ class ArticleController extends Controller
     public function index()
     {
         $articles = Article::paginate(5);
+
         return view('articles.index', ['articles' => $articles]);
     }
 
@@ -18,7 +19,9 @@ class ArticleController extends Controller
     public function show($id)
     {
         $article = Article::findOrFail($id);
-        return view('articles.show', ['article' => $article]);
+        $comments = $article->comments()->with('user')->latest('id')->paginate(10);
+
+        return view('articles.show', ['article' => $article, 'comments' => $comments]);
     }
 
     // CREATE — форма создания
@@ -46,6 +49,7 @@ class ArticleController extends Controller
     public function edit($id)
     {
         $article = Article::findOrFail($id);
+
         return view('articles.edit', ['article' => $article]);
     }
 
