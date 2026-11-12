@@ -25,10 +25,10 @@ class CommentTest extends TestCase
             ->assertDontSee('Редактировать комментарий')->assertDontSee('Удалить комментарий');
     }
 
-    public function test_a_user_can_create_edit_and_delete_their_comment(): void
+    public function test_a_moderator_can_create_edit_and_delete_a_comment(): void
     {
         $article = Article::factory()->create();
-        $user = User::factory()->create();
+        $user = User::factory()->moderator()->create();
         $this->actingAs($user);
 
         $this->post(route('articles.comments.store', $article), [
@@ -95,7 +95,7 @@ class CommentTest extends TestCase
     public function test_comment_validation_rejects_empty_and_oversized_text(): void
     {
         $comment = Comment::factory()->create();
-        $this->actingAs($comment->user);
+        $this->actingAs(User::factory()->moderator()->create());
 
         foreach (['', '   ', str_repeat('x', 5001)] as $body) {
             $this->post(route('articles.comments.store', $comment->article), ['body' => $body])
@@ -111,7 +111,7 @@ class CommentTest extends TestCase
     {
         $article = Article::factory()->has(Comment::factory(3))->create();
         $otherComment = Comment::factory()->create();
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->moderator()->create());
 
         $this->delete(route('articles.destroy', $article))->assertRedirect('/articles');
 

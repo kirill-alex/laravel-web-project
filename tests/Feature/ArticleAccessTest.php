@@ -39,9 +39,9 @@ class ArticleAccessTest extends TestCase
         $this->assertSame($originalTitle, $article->fresh()->title);
     }
 
-    public function test_authenticated_users_can_create_update_and_delete_articles(): void
+    public function test_moderators_can_create_update_and_delete_articles(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->moderator()->create());
         $this->get('/articles')->assertOk()->assertSee('+ Добавить статью');
         $this->get('/articles/create')->assertOk();
 

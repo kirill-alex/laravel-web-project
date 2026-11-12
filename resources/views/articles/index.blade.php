@@ -4,9 +4,9 @@
 
 @section('content')
     <h1>Новости</h1>
-    @auth
+    @can('create', \App\Models\Article::class)
         <a href="{{ url('/articles/create') }}">+ Добавить статью</a>
-    @endauth
+    @endcan
     <table border="1" cellpadding="8">
         <tr>
             <th>Превью</th>

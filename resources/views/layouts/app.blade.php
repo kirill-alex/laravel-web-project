@@ -11,6 +11,9 @@
     <div class="nav-left">
         <a href="{{ url('/') }}">Главная</a>
         <a href="{{ route('articles.index') }}">Статьи</a>
+        @can('create', \App\Models\Article::class)
+            <a href="{{ route('articles.create') }}">Создать новость</a>
+        @endcan
         <a href="{{ url('/about') }}">О нас</a>
         <a href="{{ url('/contacts') }}">Контакты</a>
     </div>

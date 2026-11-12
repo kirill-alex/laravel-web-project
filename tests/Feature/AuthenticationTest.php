@@ -50,7 +50,7 @@ class AuthenticationTest extends TestCase
 
     public function test_login_returns_to_the_requested_protected_page(): void
     {
-        $user = User::factory()->create(['password' => Hash::make('secret123')]);
+        $user = User::factory()->moderator()->create(['password' => Hash::make('secret123')]);
 
         $this->get('/articles/create')->assertRedirect(route('login'));
         $this->post('/login', [

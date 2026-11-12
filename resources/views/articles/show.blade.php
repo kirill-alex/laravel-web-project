@@ -9,15 +9,17 @@
     @endif
     <p>{{ $article->description }}</p>
 
-    @auth
+    @can('update', $article)
     <a href="{{ url('/articles/' . $article->id . '/edit') }}">Редактировать</a>
+    @endcan
 
+    @can('delete', $article)
     <form action="{{ url('/articles/' . $article->id) }}" method="POST" style="display:inline">
         @csrf
         @method('DELETE')
         <button type="submit" onclick="return confirm('Удалить статью?')">Удалить</button>
     </form>
-    @endauth
+    @endcan
 
     <a href="{{ url('/articles') }}">← Назад к списку</a>
 
@@ -27,7 +29,7 @@
             <p role="status">{{ session('status') }}</p>
         @endif
 
-        @auth
+        @can('create', \App\Models\Comment::class)
             <form action="{{ route('articles.comments.store', $article) }}" method="POST">
                 @csrf
                 <div>
@@ -38,21 +40,25 @@
                 <button type="submit">Добавить комментарий</button>
             </form>
         @else
-            <p><a href="{{ route('login') }}">Войдите</a>, чтобы оставить комментарий.</p>
-        @endauth
+            @guest
+                <p><a href="{{ route('login') }}">Войдите</a>, чтобы оставить комментарий.</p>
+            @endguest
+        @endcan
 
         @forelse($comments as $comment)
             <article>
                 <p><strong>{{ $comment->user->name }}</strong> · {{ $comment->created_at->format('d.m.Y H:i') }}</p>
                 <p style="white-space: pre-wrap; overflow-wrap: anywhere">{{ $comment->body }}</p>
-                @if(auth()->id() === $comment->user_id)
+                @can('update', $comment)
                     <a href="{{ route('articles.comments.edit', [$article, $comment]) }}">Редактировать комментарий</a>
+                @endcan
+                @can('delete', $comment)
                     <form action="{{ route('articles.comments.destroy', [$article, $comment]) }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <button type="submit" onclick="return confirm('Удалить комментарий?')">Удалить комментарий</button>
                     </form>
-                @endif
+                @endcan
             </article>
         @empty
             <p>Комментариев пока нет.</p>
