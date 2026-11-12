@@ -23,6 +23,21 @@ class CommentFactory extends Factory
             'article_id' => Article::factory(),
             'user_id' => User::factory(),
             'body' => fake()->paragraph(),
+            'moderation_status' => Comment::PENDING,
         ];
+    }
+
+    public function approved(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'moderation_status' => Comment::APPROVED,
+        ]);
+    }
+
+    public function rejected(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'moderation_status' => Comment::REJECTED,
+        ]);
     }
 }

@@ -63,7 +63,7 @@ class RoleAuthorizationTest extends TestCase
 
     public function test_readers_can_edit_and_delete_their_own_comments(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $this->actingAs($comment->user);
         $parameters = [$comment->article, $comment];
 
@@ -80,7 +80,7 @@ class RoleAuthorizationTest extends TestCase
 
     public function test_moderators_can_manage_someone_elses_comment(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $this->actingAs(User::factory()->moderator()->create());
         $parameters = [$comment->article, $comment];
 
@@ -137,7 +137,7 @@ class RoleAuthorizationTest extends TestCase
 
     public function test_a_moderator_cannot_address_a_comment_through_another_article(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $otherArticle = Article::factory()->create();
         $this->actingAs(User::factory()->moderator()->create());
 

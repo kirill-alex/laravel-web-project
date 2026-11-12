@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Comment extends Model
 {
+    public const PENDING = 'pending';
+
+    public const APPROVED = 'approved';
+
+    public const REJECTED = 'rejected';
+
     /** @use HasFactory<CommentFactory> */
     use HasFactory;
 

@@ -14,6 +14,6 @@ class DatabaseSeeder extends Seeder
         $this->call([RoleSeeder::class, ModeratorSeeder::class]);
 
         $author = User::factory()->create();
-        Article::factory(10)->has(Comment::factory(3)->for($author))->create();
+        Article::factory(10)->has(Comment::factory(3)->approved()->for($author))->create();
     }
 }

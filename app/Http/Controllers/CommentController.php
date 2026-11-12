@@ -22,7 +22,8 @@ class CommentController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
-        return redirect()->route('articles.show', $article)->with('status', 'Комментарий добавлен.');
+        return redirect()->route('articles.show', $article)
+            ->with('status', 'Комментарий добавлен и ожидает модерации.');
     }
 
     public function edit(Request $request, Article $article, Comment $comment): View
@@ -37,9 +38,17 @@ class CommentController extends Controller
         Gate::authorize('update', $comment);
 
         $validated = $request->validate(['body' => 'required|string|max:5000']);
-        $comment->update($validated);
+        $comment->fill($validated);
+        if ($comment->isDirty('body') && ! $request->user()->isModerator()) {
+            $comment->moderation_status = Comment::PENDING;
+        }
+        $comment->save();
 
-        return redirect()->route('articles.show', $article)->with('status', 'Комментарий обновлён.');
+        return redirect()->route('articles.show', $article)->with('status',
+            $comment->moderation_status === Comment::PENDING
+                ? 'Комментарий обновлён и ожидает модерации.'
+                : 'Комментарий обновлён.'
+        );
     }
 
     public function destroy(Request $request, Article $article, Comment $comment): RedirectResponse

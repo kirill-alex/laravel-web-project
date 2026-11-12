@@ -15,6 +15,7 @@
             <a href="{{ route('articles.create') }}">Создать новость</a>
         @endcan
         @can('moderate-content')
+            <a href="{{ route('moderation.comments.index') }}">Модерация комментариев</a>
             <a href="{{ route('mailbox.index') }}">Тестовая почта</a>
         @endcan
         <a href="{{ url('/about') }}">О нас</a>

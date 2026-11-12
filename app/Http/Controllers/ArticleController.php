@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\ArticleCreatedMail;
 use App\Models\Article;
+use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,7 +29,8 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
         Gate::authorize('view', $article);
-        $comments = $article->comments()->with('user')->latest('id')->paginate(10);
+        $comments = $article->comments()->where('moderation_status', Comment::APPROVED)
+            ->with('user')->latest('id')->paginate(10);
 
         return view('articles.show', ['article' => $article, 'comments' => $comments]);
     }

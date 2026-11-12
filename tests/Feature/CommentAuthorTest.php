@@ -15,7 +15,7 @@ class CommentAuthorTest extends TestCase
 
     public function test_comment_authorship_is_available_in_both_directions(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
 
         $this->assertTrue($comment->user->comments->contains($comment));
         $this->get(route('articles.show', $comment->article))->assertOk()
@@ -24,7 +24,7 @@ class CommentAuthorTest extends TestCase
 
     public function test_the_management_gate_allows_only_the_author_and_moderator(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $author = $comment->user;
         $otherReader = User::factory()->create();
         $moderator = User::factory()->moderator()->create();
@@ -38,8 +38,8 @@ class CommentAuthorTest extends TestCase
 
     public function test_the_interface_shows_management_controls_only_for_owned_comments(): void
     {
-        $own = Comment::factory()->create();
-        $foreign = Comment::factory()->for($own->article)->create();
+        $own = Comment::factory()->approved()->create();
+        $foreign = Comment::factory()->approved()->for($own->article)->create();
         $this->actingAs($own->user);
 
         $this->get(route('articles.show', $own->article))->assertOk()
@@ -51,7 +51,7 @@ class CommentAuthorTest extends TestCase
 
     public function test_an_author_cannot_reassign_a_comment_or_move_it_to_another_article(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $otherUser = User::factory()->create();
         $otherArticle = Article::factory()->create();
         $this->actingAs($comment->user);
@@ -72,7 +72,7 @@ class CommentAuthorTest extends TestCase
 
     public function test_another_reader_receives_a_custom_denial_for_direct_requests(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $this->actingAs(User::factory()->create());
         $parameters = [$comment->article, $comment];
         $message = 'Изменять и удалять комментарий могут только его автор и модератор.';
@@ -87,7 +87,7 @@ class CommentAuthorTest extends TestCase
 
     public function test_the_author_still_cannot_submit_invalid_comment_text(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $this->actingAs($comment->user);
 
         $this->put(route('articles.comments.update', [$comment->article, $comment]), ['body' => '   '])

@@ -16,8 +16,8 @@ class CommentTest extends TestCase
 
     public function test_comments_are_public_and_scoped_to_their_article(): void
     {
-        $comment = Comment::factory()->create(['body' => '<script>alert(1)</script>']);
-        $otherComment = Comment::factory()->create(['body' => 'Other article comment']);
+        $comment = Comment::factory()->approved()->create(['body' => '<script>alert(1)</script>']);
+        $otherComment = Comment::factory()->approved()->create(['body' => 'Other article comment']);
 
         $this->get(route('articles.show', $comment->article))->assertOk()
             ->assertSee($comment->body)->assertSee($comment->user->name)
@@ -39,6 +39,8 @@ class CommentTest extends TestCase
 
         $comment = $article->comments()->firstOrFail();
         $this->assertTrue($comment->user->is($user));
+        $this->assertSame(Comment::PENDING, $comment->moderation_status);
+        $this->patch(route('moderation.comments.approve', $comment))->assertRedirect();
         $this->get(route('articles.show', $article))->assertSee('Редактировать комментарий');
         $this->get(route('articles.comments.edit', [$article, $comment]))
             ->assertOk()->assertSee('My comment');
@@ -53,7 +55,7 @@ class CommentTest extends TestCase
 
     public function test_guests_cannot_manage_comments(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $parameters = [$comment->article, $comment];
 
         $this->post(route('articles.comments.store', $comment->article), ['body' => 'New'])
@@ -68,7 +70,7 @@ class CommentTest extends TestCase
 
     public function test_users_cannot_change_someone_elses_comment(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $parameters = [$comment->article, $comment];
         $this->actingAs(User::factory()->create());
 
@@ -81,7 +83,7 @@ class CommentTest extends TestCase
 
     public function test_a_comment_cannot_be_accessed_under_a_different_article(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $otherArticle = Article::factory()->create();
         $parameters = [$otherArticle, $comment];
         $this->actingAs($comment->user);
@@ -94,7 +96,7 @@ class CommentTest extends TestCase
 
     public function test_comment_validation_rejects_empty_and_oversized_text(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
         $this->actingAs(User::factory()->moderator()->create());
 
         foreach (['', '   ', str_repeat('x', 5001)] as $body) {
@@ -110,7 +112,7 @@ class CommentTest extends TestCase
     public function test_deleting_an_article_removes_only_its_comments(): void
     {
         $article = Article::factory()->has(Comment::factory(3))->create();
-        $otherComment = Comment::factory()->create();
+        $otherComment = Comment::factory()->approved()->create();
         $this->actingAs(User::factory()->moderator()->create());
 
         $this->delete(route('articles.destroy', $article))->assertRedirect('/articles');
@@ -121,7 +123,7 @@ class CommentTest extends TestCase
 
     public function test_cascade_deletion_is_enforced_by_the_database(): void
     {
-        $comment = Comment::factory()->create();
+        $comment = Comment::factory()->approved()->create();
 
         DB::table('articles')->where('id', $comment->article_id)->delete();
 
@@ -130,7 +132,7 @@ class CommentTest extends TestCase
 
     public function test_comments_are_paginated_newest_first(): void
     {
-        $article = Article::factory()->has(Comment::factory(11))->create();
+        $article = Article::factory()->has(Comment::factory(11)->approved())->create();
         $newest = $article->comments()->latest('id')->first();
         $oldest = $article->comments()->oldest('id')->first();
 

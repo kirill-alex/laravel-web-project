@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\CommentModerationController;
 use App\Http\Controllers\MailboxController;
 use App\Http\Controllers\MainController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // Защищённые маршруты
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/moderation/comments', [CommentModerationController::class, 'index'])->name('moderation.comments.index');
+    Route::patch('/moderation/comments/{comment}/approve', [CommentModerationController::class, 'approve'])->name('moderation.comments.approve');
+    Route::patch('/moderation/comments/{comment}/reject', [CommentModerationController::class, 'reject'])->name('moderation.comments.reject');
     Route::get('/mailbox', [MailboxController::class, 'index'])->name('mailbox.index');
     Route::get('/mailbox/{message}', [MailboxController::class, 'show'])->name('mailbox.show');
     Route::resource('articles', ArticleController::class)->except(['index', 'show']);
