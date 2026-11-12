@@ -4,6 +4,12 @@
 
 @section('content')
     <h1>Новости</h1>
+    @if(session('status'))
+        <p role="status">{{ session('status') }}</p>
+    @endif
+    @if(session('warning'))
+        <p role="alert">{{ session('warning') }}</p>
+    @endif
     @can('create', \App\Models\Article::class)
         <a href="{{ url('/articles/create') }}">+ Добавить статью</a>
     @endcan

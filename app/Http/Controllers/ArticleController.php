@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ArticleCreatedMail;
 use App\Models\Article;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ArticleController extends Controller
 {
@@ -47,9 +53,31 @@ class ArticleController extends Controller
             'full_image' => 'nullable|string',
         ]);
 
-        Article::create($validated);
+        $article = Article::create($validated);
 
-        return redirect('/articles');
+        $moderatorAddress = config('mail.moderator_address');
+        $recipients = filled($moderatorAddress)
+            ? collect([$moderatorAddress])
+            : User::whereHas('role', fn (Builder $query) => $query->where('name', Role::MODERATOR))
+                ->pluck('email')->unique();
+
+        $notificationFailed = $recipients->isEmpty();
+        foreach ($recipients as $recipient) {
+            try {
+                Mail::to($recipient)->send(new ArticleCreatedMail($article));
+            } catch (TransportExceptionInterface $exception) {
+                report($exception);
+                $notificationFailed = true;
+            }
+        }
+
+        if ($notificationFailed) {
+            return redirect('/articles')->with('warning',
+                'Статья сохранена, но не все уведомления отправлены. Проверьте настройки почты и адрес модератора.'
+            );
+        }
+
+        return redirect('/articles')->with('status', 'Статья успешно создана.');
     }
 
     // UPDATE — форма редактирования
