@@ -53,4 +53,5 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Открытые для всех
-Route::resource('articles', ArticleController::class)->only(['index', 'show']);
+Route::resource('articles', ArticleController::class)->only(['index', 'show'])
+    ->middlewareFor('show', 'track.article.view');
