@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewArticleEvent;
 use App\Jobs\VeryLongJob;
 use App\Models\Article;
 use App\Models\Comment;
@@ -28,10 +29,13 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
         Gate::authorize('view', $article);
-        $comments = $article->comments()->where('moderation_status', Comment::APPROVED)
+        $comments = $article->comments()->where('moderation_status', Comment::APPROVED) // отбирает комментарии со статусом "approved"
             ->with('user')->latest('id')->paginate(10);
 
-        return view('articles.show', ['article' => $article, 'comments' => $comments]);
+        $imageCredits = json_decode(file_get_contents(public_path('images/cat-memes/credits.json')), true);
+        $imageCredit = collect($imageCredits)->firstWhere('file', basename((string) $article->full_image));
+
+        return view('articles.show', ['article' => $article, 'comments' => $comments, 'imageCredit' => $imageCredit]);
     }
 
     // CREATE — форма создания
@@ -60,13 +64,17 @@ class ArticleController extends Controller
             : User::whereHas('role', fn (Builder $query) => $query->where('name', Role::MODERATOR))
                 ->pluck('email')->unique();
 
-        DB::transaction(function () use ($validated, $recipients): void {
+        $article = DB::transaction(function () use ($validated, $recipients): Article {
             $article = Article::create($validated);
 
             foreach ($recipients as $recipient) {
                 VeryLongJob::dispatch($article, $recipient);
             }
+
+            return $article;
         });
+
+        NewArticleEvent::dispatch($article);
 
         if ($recipients->isEmpty()) {
             return redirect('/articles')->with('warning',

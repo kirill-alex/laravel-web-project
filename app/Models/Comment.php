@@ -15,7 +15,7 @@ class Comment extends Model
 
     public const REJECTED = 'rejected';
 
-    /** @use HasFactory<CommentFactory> */
+
     use HasFactory;
 
     protected $fillable = ['body', 'user_id'];

@@ -4,9 +4,7 @@
 
 @section('content')
     <h1>{{ $article->title }}</h1>
-    @if($article->full_image)
-        <img src="{{ $article->full_image }}" width="400">
-    @endif
+    <img class="article-image" src="{{ asset($article->full_image ?: 'images/full1.jpg') }}" alt="{{ $article->title }}" width="600" height="360" onerror="this.onerror=null; this.src='{{ asset('images/full1.jpg') }}';">
     <p>{{ $article->description }}</p>
 
     @can('update', $article)

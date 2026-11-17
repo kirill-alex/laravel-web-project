@@ -21,7 +21,7 @@
         </tr>
         @foreach($articles as $article)
         <tr>
-            <td><a href="{{ url('/articles/' . $article->id) }}"><img src="{{ $article->preview_image }}" width="100"></a></td>
+            <td><a href="{{ url('/articles/' . $article->id) }}"><img class="article-thumbnail" src="{{ asset($article->preview_image ?: 'images/cat1.jpg') }}" alt="{{ $article->title }}" width="120" height="90" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('images/cat1.jpg') }}';"></a></td>
             <td><a href="{{ url('/articles/' . $article->id) }}">{{ $article->title }}</a></td>
             <td>{{ $article->description }}</td>
         </tr>

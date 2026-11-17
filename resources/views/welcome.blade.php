@@ -14,7 +14,7 @@
             <tr>
                 <td>
                     <a href="{{ url('/gallery/' . $item['id']) }}">
-                        <img src="{{ asset($item['preview_image']) }}" width="100" alt="{{ $item['title'] }}">
+                        <img class="gallery-thumbnail" src="{{ asset($item['preview_image']) }}" width="120" height="90" alt="{{ $item['title'] }}" loading="lazy">
                     </a>
                 </td>
                 <td>{{ $item['title'] }}</td>

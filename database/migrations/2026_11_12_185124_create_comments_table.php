@@ -9,6 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+    // cascadeOnDelete() каскадно удаляет комменты связанные со статьёй
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {

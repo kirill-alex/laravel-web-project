@@ -96,6 +96,25 @@ table img {
     display: block;
 }
 
+.article-image,
+.gallery-image {
+    display: block;
+    width: 600px;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 5 / 3;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #fffaf3;
+}
+
+.article-thumbnail,
+.gallery-thumbnail {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+}
+
 form {
     padding: 24px;
     border-radius: 8px;

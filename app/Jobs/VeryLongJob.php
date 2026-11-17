@@ -34,3 +34,4 @@ class VeryLongJob implements ShouldQueue
         Mail::to($this->recipient)->send(new ArticleCreatedMail($this->article));
     }
 }
+

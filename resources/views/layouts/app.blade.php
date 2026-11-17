@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Мой сайт')</title>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
+    <div id="app"
+         data-broadcast-enabled="{{ config('broadcasting.default') === 'pusher' && filled(config('broadcasting.connections.pusher.key')) ? 'true' : 'false' }}"
+         data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
+         data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster', 'eu') }}"></div>
     <header>
         <nav>
     <div class="nav-left">

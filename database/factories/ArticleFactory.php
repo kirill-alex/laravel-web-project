@@ -7,12 +7,18 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class ArticleFactory extends Factory
 {
     public function definition(): array
-{
-    return [
-        'title' => fake()->sentence(4),
-        'description' => fake()->paragraph(),
-        'preview_image' => 'https://picsum.photos/200/200?random=' . fake()->unique()->numberBetween(1, 1000),
-        'full_image' => 'https://picsum.photos/800/600?random=' . fake()->unique()->numberBetween(1, 1000),
-    ];
-}
+    {
+        $imagePaths = array_map(
+            fn (int $number): string => sprintf('images/cat-memes/cat-meme-%02d.jpg', $number),
+            range(1, 8)
+        );
+        $imagePath = fake()->randomElement([...$imagePaths, 'images/cat1.jpg', 'images/cat2.jpg', 'images/cat3.jpg']);
+
+        return [
+            'title' => fake()->sentence(4),
+            'description' => fake()->paragraph(),
+            'preview_image' => $imagePath,
+            'full_image' => $imagePath,
+        ];
+    }
 }
