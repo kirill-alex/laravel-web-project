@@ -28,6 +28,7 @@
 
     <div class="nav-right">
         @auth
+            @include('partials.notifications')
             <span class="nav-username">{{ Auth::user()->name }}</span>
             <form action="{{ url('/logout') }}" method="POST" style="display:inline">
                 @csrf

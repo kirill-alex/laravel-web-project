@@ -8,10 +8,13 @@ use App\Models\Article;
 use App\Models\Comment;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\NewArticleNotification;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 
 class ArticleController extends Controller
 {
@@ -70,6 +73,11 @@ class ArticleController extends Controller
             foreach ($recipients as $recipient) {
                 VeryLongJob::dispatch($article, $recipient);
             }
+
+            User::whereHas('role', fn (Builder $query) => $query->where('name', Role::READER))
+                ->chunkById(100, function (Collection $readers) use ($article): void {
+                    Notification::send($readers, new NewArticleNotification($article));
+                });
 
             return $article;
         });

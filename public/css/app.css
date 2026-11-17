@@ -33,6 +33,76 @@ header nav {
     align-items: center;
 }
 
+.notification-menu {
+    position: relative;
+    color: #f5ede1;
+    font-size: 14px;
+}
+
+.notification-menu summary {
+    cursor: pointer;
+    padding: 6px 0;
+}
+
+.notification-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 900;
+    width: min(340px, calc(100vw - 40px));
+    max-height: 380px;
+    overflow-y: auto;
+    border: 1px solid #ddccb5;
+    border-radius: 8px;
+    background: #fffaf3;
+    color: #4a3f35;
+    box-shadow: 0 8px 24px rgb(74 63 53 / 18%);
+}
+
+.notification-heading,
+.notification-empty {
+    margin: 0;
+    padding: 12px 16px;
+}
+
+.notification-heading {
+    border-bottom: 1px solid #e8dcc9;
+    font-weight: 600;
+}
+
+.notification-item {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.notification-link {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    border: 0;
+    border-bottom: 1px solid #e8dcc9;
+    border-radius: 0;
+    background: transparent;
+    color: #4a3f35;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.notification-link:hover {
+    background: #ede0cc;
+}
+
+.notification-caption {
+    display: block;
+    margin-bottom: 4px;
+    color: #7a6a5a;
+    font-size: 12px;
+}
+
 .nav-username {
     color: #f5ede1;
     font-size: 14px;

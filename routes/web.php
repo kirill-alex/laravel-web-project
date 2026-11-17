@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentModerationController;
 use App\Http\Controllers\MailboxController;
 use App\Http\Controllers\MainController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MainController::class, 'index'])->name('home');
@@ -40,6 +41,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // Защищённые маршруты
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::get('/moderation/comments', [CommentModerationController::class, 'index'])->name('moderation.comments.index');
     Route::patch('/moderation/comments/{comment}/approve', [CommentModerationController::class, 'approve'])->name('moderation.comments.approve');
     Route::patch('/moderation/comments/{comment}/reject', [CommentModerationController::class, 'reject'])->name('moderation.comments.reject');
