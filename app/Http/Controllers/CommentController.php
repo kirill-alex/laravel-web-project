@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Comment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -21,6 +22,7 @@ class CommentController extends Controller
             'body' => $validated['body'],
             'user_id' => $request->user()->id,
         ]);
+        Cache::forget('articles.show.'.$article->id);
 
         return redirect()->route('articles.show', $article)
             ->with('status', 'Комментарий добавлен и ожидает модерации.');
@@ -43,6 +45,7 @@ class CommentController extends Controller
             $comment->moderation_status = Comment::PENDING;
         }
         $comment->save();
+        Cache::forget('articles.show.'.$article->id);
 
         return redirect()->route('articles.show', $article)->with('status',
             $comment->moderation_status === Comment::PENDING
@@ -56,6 +59,7 @@ class CommentController extends Controller
         Gate::authorize('delete', $comment);
 
         $comment->delete();
+        Cache::forget('articles.show.'.$article->id);
 
         return redirect()->route('articles.show', $article)->with('status', 'Комментарий удалён.');
     }

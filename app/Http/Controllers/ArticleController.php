@@ -12,9 +12,12 @@ use App\Notifications\NewArticleNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
@@ -22,7 +25,20 @@ class ArticleController extends Controller
     public function index()
     {
         Gate::authorize('viewAny', Article::class);
-        $articles = Article::paginate(5);
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $version = Cache::rememberForever('articles.index.version', fn (): string => (string) Str::uuid());
+        $data = Cache::remember('articles.index.'.$version.'.'.$page, now()->addMinutes(5), function () use ($page): array {
+            $paginator = Article::orderBy('id')->paginate(5, ['*'], 'page', $page);
+
+            return [
+                'items' => $paginator->getCollection()->map(fn (Article $article): array => $article->getAttributes())->all(),
+                'total' => $paginator->total(),
+            ];
+        });
+        $articles = new LengthAwarePaginator(Article::hydrate($data['items']), $data['total'], 5, $page, [
+            'path' => request()->url(),
+            'query' => request()->except('page'),
+        ]);
 
         return view('articles.index', ['articles' => $articles]);
     }
@@ -30,10 +46,33 @@ class ArticleController extends Controller
     // READ (одна статья)
     public function show($id)
     {
-        $article = Article::findOrFail($id);
+        $data = Cache::rememberForever('articles.show.'.$id, function () use ($id): array {
+            $article = Article::findOrFail($id);
+            $comments = $article->comments()->where('moderation_status', Comment::APPROVED)
+                ->with('user:id,name')->latest('id')->get();
+
+            return [
+                'article' => $article->getAttributes(),
+                'comments' => $comments->map(fn (Comment $comment): array => [
+                    'attributes' => $comment->getAttributes(),
+                    'user' => $comment->user->getAttributes(),
+                ])->all(),
+            ];
+        });
+        $article = (new Article)->newFromBuilder($data['article']);
         Gate::authorize('view', $article);
-        $comments = $article->comments()->where('moderation_status', Comment::APPROVED) // отбирает комментарии со статусом "approved"
-            ->with('user')->latest('id')->paginate(10);
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $pageComments = collect($data['comments'])->slice(($page - 1) * 10, 10)
+            ->map(function (array $row): Comment {
+                $comment = (new Comment)->newFromBuilder($row['attributes']);
+                $comment->setRelation('user', (new User)->newFromBuilder($row['user']));
+
+                return $comment;
+            })->values();
+        $comments = new LengthAwarePaginator($pageComments, count($data['comments']), 10, $page, [
+            'path' => request()->url(),
+            'query' => request()->except('page'),
+        ]);
 
         $imageCredits = json_decode(file_get_contents(public_path('images/cat-memes/credits.json')), true);
         $imageCredit = collect($imageCredits)->firstWhere('file', basename((string) $article->full_image));
@@ -82,6 +121,8 @@ class ArticleController extends Controller
             return $article;
         });
 
+        // A new version makes every cached list page obsolete; old entries expire by TTL.
+        Cache::forget('articles.index.version');
         NewArticleEvent::dispatch($article);
 
         if ($recipients->isEmpty()) {
@@ -116,6 +157,7 @@ class ArticleController extends Controller
         ]);
 
         $article->update($validated);
+        $this->flushCachePreservingWorkerSignal();
 
         return redirect('/articles');
     }
@@ -126,7 +168,21 @@ class ArticleController extends Controller
         $article = Article::findOrFail($id);
         Gate::authorize('delete', $article);
         $article->delete();
+        $this->flushCachePreservingWorkerSignal();
 
         return redirect('/articles');
+    }
+
+    private function flushCachePreservingWorkerSignal(): void
+    {
+        DB::transaction(function (): void {
+            // Removing this shared value would stop existing queue workers.
+            $queueRestart = Cache::get('illuminate:queue:restart');
+            Cache::flush();
+
+            if ($queueRestart !== null) {
+                Cache::forever('illuminate:queue:restart', $queueRestart);
+            }
+        });
     }
 }

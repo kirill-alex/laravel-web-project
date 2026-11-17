@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -41,5 +42,6 @@ class CommentModerationController extends Controller
             ->update(['moderation_status' => $status]);
 
         abort_unless($updated === 1, 409, 'Этот комментарий уже прошёл модерацию. Обновите список.');
+        Cache::forget('articles.show.'.$comment->article_id);
     }
 }
