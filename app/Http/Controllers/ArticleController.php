@@ -121,7 +121,6 @@ class ArticleController extends Controller
             return $article;
         });
 
-        // A new version makes every cached list page obsolete; old entries expire by TTL.
         Cache::forget('articles.index.version');
         NewArticleEvent::dispatch($article);
 
